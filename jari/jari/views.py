@@ -1,13 +1,70 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.conf import settings
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Users, Room, Reservation, Feedback, Post, DayTimeTable
-from .serializer import UsersSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer
+from rest_framework.renderers import JSONRenderer
+from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
+from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer
+from django.http import JsonResponse
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from json.decoder import JSONDecodeError
+from django.http import JsonResponse
+from rest_framework import status
+import requests
+import urllib
 
+BASE_URL = 'http://localhost:8000/'
+KAKAO_CALLBACK_URI = BASE_URL + 'kakao/callback/'
+client_id = getattr(settings, 'SOCIAL_AUTH_KAKAO_CLIENT_ID')
+def kakao_login(request):
+    return redirect(
+        f'https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&scope=account_email'
+    )
+
+def kakao_callback(request):
+    code = request.GET.get('code')
+    
+    token_request = requests.post(f"https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&code={code}")
+    token_response_json = token_request.json()
+    
+    error = token_response_json.get('error', None)
+    if error is not None:
+        raise JSONDecodeError(error)
+    access_token = token_response_json.get('access_token')
+    
+    profile_request = requests.get(
+        "https://kapi.kakao.com/v2/user/me", headers={"Authorization": f"Bearer {access_token}"}
+    )
+    profile_json = profile_request.json()
+    kakao_account = profile_json.get('kakao_account')
+    email = kakao_account.get('email', None)
+
+    data = {'email': email, 'access_token': access_token, 'code': code}
+    accept = requests.post(f"{BASE_URL}kakao/login/finish/", data=data)
+    
+    try:
+        user = User.objects.get(email=email)
+        return JsonResponse(data)
+    except User.DoesNotExist:
+        user = User.objects.create_user(
+            email=email
+        )
+        user.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    
+class KakaoLogin(SocialLoginView):
+    adapter_class = KakaoOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = KAKAO_CALLBACK_URI
+    
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = Users.objects.all()
-    serializer_class = UsersSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -32,7 +89,7 @@ class CreateAccount(APIView):
         student_id = data.get('student_id')
         password = data.get('password')
         status = data.get('status')
-        user = Users.objects.create(name=name, student_id=student_id, password=password, status=status)
+        user = User.objects.create(name=name, student_id=student_id, password=password, status=status)
         user.save()
         return Response({'message': '회원가입이 완료되었습니다.'})
     
