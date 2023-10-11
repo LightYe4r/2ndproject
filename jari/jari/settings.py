@@ -58,14 +58,12 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
-SOCIAL_AUTH_KAKAO_CLIENT_ID = "enter your REST API key"
-SOCIAL_AUTH_KAKAO_SECRET = "enter your service ID"
-
-
+SOCIAL_AUTH_KAKAO_CLIENT_ID = ""
+SOCIAL_AUTH_KAKAO_SECRET = ""
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        #'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     
     'DEFAULT_AUTHENTICATION_CLASSES': (

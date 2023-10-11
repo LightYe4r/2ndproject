@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
 from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer
 from django.http import JsonResponse
@@ -11,7 +12,6 @@ from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from json.decoder import JSONDecodeError
-from django.http import JsonResponse
 from rest_framework import status
 import requests
 import urllib
@@ -41,20 +41,17 @@ def kakao_callback(request):
     profile_json = profile_request.json()
     kakao_account = profile_json.get('kakao_account')
     email = kakao_account.get('email', None)
-
-    data = {'email': email, 'access_token': access_token, 'code': code}
-    accept = requests.post(f"{BASE_URL}kakao/login/finish/", data=data)
-    
     try:
         user = User.objects.get(email=email)
-        return JsonResponse(data)
+        token = TokenObtainPairSerializer.get_token(user)
+        return JsonResponse({'refresh_token': str(token), 'token': str(token.access_token)})
     except User.DoesNotExist:
         user = User.objects.create_user(
             email=email
         )
         user.save()
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        token = TokenObtainPairSerializer.get_token(user)
+        return JsonResponse({'refresh_token': str(token), 'token': str(token.access_token)})
 
     
 class KakaoLogin(SocialLoginView):
