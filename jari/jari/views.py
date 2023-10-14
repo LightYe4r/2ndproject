@@ -16,7 +16,7 @@ from rest_framework import status
 import requests
 import urllib
 
-BASE_URL = 'http://localhost:8000/'
+BASE_URL = 'https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app/'
 KAKAO_CALLBACK_URI = BASE_URL + 'kakao/callback/'
 client_id = getattr(settings, 'SOCIAL_AUTH_KAKAO_KEY')
 def kakao_login(request):
