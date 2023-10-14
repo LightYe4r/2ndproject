@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-3gs+nh97@$6u59ah0_dcwh^!eua1w6&x&8@&cl4_h)0k!cn8^q'
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY= os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -63,8 +64,8 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 # SOCIAL_AUTH_KAKAO_CLIENT_ID = ""
 # SOCIAL_AUTH_KAKAO_SECRET = ""
 
-SOCIAL_AUTH_KAKAO_KEY = os.environ['SOCIAL_AUTH_KAKAO_KEY']
-SOCIAL_AUTH_KAKAO_SECRET = os.environ['SOCIAL_AUTH_KAKAO_SECRET']
+SOCIAL_AUTH_KAKAO_KEY= os.environ['SOCIAL_AUTH_KAKAO_KEY']
+SOCIAL_AUTH_KAKAO_SECRET= os.environ['SOCIAL_AUTH_KAKAO_SECRET']
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
