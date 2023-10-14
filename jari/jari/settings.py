@@ -25,7 +25,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app"]
 
 
 # Application definition
@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
+    "corsheaders"
+    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -77,12 +79,23 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheader.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app",
+    "http://localhost:8000",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app",
+    "http://localhost:8000",
 ]
 
 ROOT_URLCONF = 'jari.urls'
