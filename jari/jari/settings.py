@@ -90,8 +90,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_WHITELIST = [
-    "https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app",
-    "http://localhost:8000",
+    'https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app',
+    'http://localhost:8000',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
