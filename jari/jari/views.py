@@ -44,14 +44,14 @@ def kakao_callback(request):
     try:
         user = User.objects.get(email=email)
         token = TokenObtainPairSerializer.get_token(user)
-        return Response({'refresh_token': str(token), 'token': str(token.access_token)})
+        return JSONResponse({'refresh_token': str(token), 'token': str(token.access_token)})
     except User.DoesNotExist:
         user = User.objects.create_user(
             email=email
         )
         user.save()
         token = TokenObtainPairSerializer.get_token(user)
-        return Response({'refresh_token': str(token), 'token': str(token.access_token)})
+        return JSONResponse({'refresh_token': str(token), 'token': str(token.access_token)})
 
     
 class KakaoLogin(SocialLoginView):
