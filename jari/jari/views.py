@@ -18,7 +18,7 @@ import urllib
 
 BASE_URL = 'http://localhost:8000/'
 KAKAO_CALLBACK_URI = BASE_URL + 'kakao/callback/'
-client_id = getattr(settings, 'SOCIAL_AUTH_KAKAO_CLIENT_ID')
+client_id = getattr(settings, 'SOCIAL_AUTH_KAKAO_KEY')
 def kakao_login(request):
     return redirect(
         f'https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&scope=account_email'
