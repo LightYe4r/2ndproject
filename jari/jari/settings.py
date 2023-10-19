@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-3gs+nh97@$6u59ah0_dcwh^!eua1w6&x&8@&cl4_h)0k!cn8^q'
-SECRET_KEY= os.environ['SECRET_KEY']
+SECRET_KEY = 'django-insecure-3gs+nh97@$6u59ah0_dcwh^!eua1w6&x&8@&cl4_h)0k!cn8^q'
+# SECRET_KEY= os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app', 'localhost:8000']
+ALLOWED_HOSTS = ['port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app', '127.0.0.1']
 
 
 # Application definition
@@ -49,23 +49,13 @@ INSTALLED_APPS = [
     
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.kakao',
     'jari',
 ]
 
 AUTH_USER_MODEL = 'jari.User'
 REST_USE_JWT = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-
-# SOCIAL_AUTH_KAKAO_CLIENT_ID = ""
-# SOCIAL_AUTH_KAKAO_SECRET = ""
-
-SOCIAL_AUTH_KAKAO_KEY= os.environ['SOCIAL_AUTH_KAKAO_KEY']
-SOCIAL_AUTH_KAKAO_SECRET= os.environ['SOCIAL_AUTH_KAKAO_SECRET']
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'kakao_id'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
