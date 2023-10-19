@@ -19,6 +19,6 @@ urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('login/', Login.as_view()),
-    path('roonreserve/', RoomReservation.as_view()),
+    path('roomreserve/', RoomReservation.as_view()),
     path('searchtimetable/',SearchDayTimeTable.as_view()),
 ]

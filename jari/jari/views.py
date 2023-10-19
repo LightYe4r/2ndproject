@@ -75,7 +75,6 @@ class RoomReservation(APIView):
         start = data.get('start')
         end = data.get('end')
         people_num = data.get('people_num')
-        status = data.get('status')
         try:
             daytimetable = DayTimeTable.objects.filter(room_id = room_id, date = date)
             if(daytimetable.timetable[start:end+1] == '0' * (end - start)):
