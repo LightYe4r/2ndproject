@@ -33,7 +33,6 @@ class User(AbstractUser):
 class Room(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    date = models.DateField()
     start_hour = models.IntegerField()
     end_hour = models.IntegerField()
     timetable = [0] * 24
@@ -44,17 +43,19 @@ class Room(models.Model):
 class DayTimeTable(models.Model):
     id = models.AutoField(primary_key=True)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
-    day = models.DateField()
+    date = models.DateField()
     timetable = models.CharField(max_length=48,default="0"*48)
 
 class Reservation(models.Model):
     id = models.AutoField(primary_key=True)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start = models.DateTimeField()
+    end = models.DateTimeField()
     create_at = models.DateTimeField(auto_now_add=True)
     people_num = models.IntegerField()
+    date = models.DateField()
+    extension = models.IntegerField(default=2)
     status = models.CharField(max_length=100)
     
 class Feedback(models.Model):

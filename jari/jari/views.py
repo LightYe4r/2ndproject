@@ -8,7 +8,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
-from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer
+from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer,DayTimeTableSerializer
 from django.http import JsonResponse
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
@@ -68,32 +68,39 @@ class RoomDetailView(APIView):
 
 class RoomReservation(APIView):
     def post(self, request, format=None, *args, **kwargs):
-        check = True
         data = request.data
         room_id = data.get('room_id')
-        date = data.get('day')
-        start_time = data.get('start_time') * 2 + data.get('start_min') // 30 + data.get('pm') * 24
-        usehour = data.get('usehour')
+        date = data.get('date')
+        user_id = data.get('user_id')
+        start = data.get('start')
+        end = data.get('end')
         people_num = data.get('people_num')
-        room = Room.objects.get(id = room_id)
-        if(people_num < room.people_num):
-            return Response({'message': '인원수가 너무 적습니다.'})
-        for i in range(usehour):
-            if(room.timetable[start_time + i] == 1):
-                check = False
-                break
-        if(check == False):
-            return Response({'message': '이미 예약된 시간입니다.'})
-        for i in range(usehour):
-            room.timetable[start_time + i] = 1
-        room.save()
-        return Response({'message': '예약이 완료되었습니다.'})
+        status = data.get('status')
+        try:
+            daytimetable = DayTimeTable.objects.filter(room_id = room_id, date = date)
+            if(daytimetable.timetable[start:end+1] == '0' * (end - start)):
+                daytimetable.timetable[start:end+1] = '1' * (end - start)
+                reservation = Reservation.objects.create(room_id = room_id, date = date, user_id = user_id, start = start, end = end, people_num = people_num, status = status)
+                reservation.save()
+                daytimetable.save()
+        except DayTimeTable.DoesNotExist:
+            daytimetable = DayTimeTable.objects.create(room_id = room_id, date = date)
+            daytimetable.timetable[start:end+1] = '1' * (end - start)
+            reservation = Reservation.objects.create(room_id = room_id, date = date, user_id = user_id, start = start, end = end, people_num = people_num, status = status)
+            reservation.save()
+            daytimetable.save()
+        serializer = DayTimeTableSerializer(daytimetable)  
+        return Response(serializer.data)
     
+class SearchDayTimeTable(APIView):  #request : { date : '20211012', start_time : 10, start_min : 30, usehour : 2 }
     def get(self, request, format=None, *args, **kwargs):
         data = request.data
-        room_id = data.get('room_id')
-        date = data.get('day')
-        room = Room.objects.get(id = room_id)
-        daytimetable = DayTimeTable.objects.get(room_id = room_id, day = date)
-        timetable = daytimetable.timetable
-        return Response({'timetable': timetable})
+        date = data.get('date')
+        start = data.get('start')
+        end = data.get('end')
+        daytimetables = DayTimeTable.objects.filter(date = date)
+        for daytimetable in daytimetables:
+            if(daytimetable.timetable[start:end+1] == '0' * (end - start)):
+                Rooms += Room.objects.get(id = daytimetable.room_id)
+        serializer = RoomSerializer(Rooms, many=True)
+        return Response(serializer.data)

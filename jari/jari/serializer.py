@@ -1,5 +1,5 @@
 import rest_framework.serializers as serializers
-from .models import User, Room, Reservation, Feedback, Post
+from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,4 +24,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
+        fields = '__all__'
+
+class DayTimeTableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DayTimeTable
         fields = '__all__'
