@@ -56,7 +56,7 @@ AUTH_USER_MODEL = 'jari.User'
 REST_USE_JWT = True
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'kakao_id'
-
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'kakao_id'
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
