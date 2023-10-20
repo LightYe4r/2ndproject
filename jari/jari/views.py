@@ -16,6 +16,12 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from json.decoder import JSONDecodeError
 from rest_framework import status
 
+"""request
+{
+    "username" : "test",
+    "kakao_id" : "1234"
+}
+"""
 
 class Login(APIView):
     permission_classes = [AllowAny]
@@ -66,6 +72,16 @@ class RoomDetailView(APIView):
         serializer = RoomSerializer(room)
         return Response(serializer.data)
 
+"""request
+{
+    "room_id" : 1,
+    "date" : "2023-10-12",
+    "user_id" : 1,
+    "start" : 10,
+    "end" : 15,
+    "people_num" : 2
+}
+"""
 class RoomReservation(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
@@ -75,33 +91,70 @@ class RoomReservation(APIView):
         start = data.get('start')
         end = data.get('end')
         people_num = data.get('people_num')
-        try:
-            daytimetables = DayTimeTable.objects.filter(room_id = room_id, date = date)
-            for daytimetable in daytimetables:
-                if(daytimetable.timetable[start:end+1] == '0' * (end - start)):
-                    daytimetable.timetable[start:end+1] = '1' * (end - start)
-                    reservation = Reservation.objects.create(room_id = room_id, date = date, user_id = user_id, start = start, end = end, people_num = people_num, status = status)
-                    reservation.save()
-                    daytimetable.save()
-        except DayTimeTable.DoesNotExist:
-            daytimetable = DayTimeTable.objects.create(room_id = room_id, date = date)
-            daytimetable.timetable[start:end+1] = '1' * (end - start)
-            reservation = Reservation.objects.create(room_id = room_id, date = date, user_id = user_id, start = start, end = end, people_num = people_num, status = status)
+        room = Room.objects.get(id = room_id)
+        user = User.objects.get(id = user_id)
+        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+        if('1' not in daytimetable.timetable[start:end+1]):
+            print(daytimetable.timetable[start:end+1])
+            reserve = '1' * (end - start)
+            daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+            reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
             reservation.save()
+            serializer = ReservationSerializer(reservation)
             daytimetable.save()
-        serializer = DayTimeTableSerializer(daytimetables, many=True)  
+        else:
+            print("no")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
-    
+
+"""request
+{
+    "date" : "2023-10-12",
+    "type" : "smash"
+}
+"""
+
+
+class SearchDayTable(APIView):
+    def get(self, request, format=None, *args, **kwargs):
+        data = request.data
+        date = data.get('date')
+        type = data.get('type')
+        Rooms = Room.objects.filter(type = type)
+        room_num = Rooms.count()
+        table = [room_num]*26
+        for room in Rooms:
+            try:
+                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+                for i in range(26):
+                    if(daytimetable.timetable[i] == '1'):
+                        table[i] -= 1
+            except DayTimeTable.DoesNotExist:
+                newdaytimetable = DayTimeTable.objects.create(room_id = room, date = date)
+                newdaytimetable.save()
+        return JsonResponse(table, safe=False)
+
+"""request
+{ 
+    "date" : "2023-10-12",
+    "type" : "smash",
+    "start" : 10,
+    "end" : 15
+}
+"""
+
 class SearchDayTimeTable(APIView):  #request : { date : '20211012', start_time : 10, start_min : 30, usehour : 2 }
     def get(self, request, format=None, *args, **kwargs):
         data = request.data
         date = data.get('date')
+        type = data.get('type')
         start = data.get('start')
         end = data.get('end')
-        daytimetables = DayTimeTable.objects.filter(date = date)
-        for daytimetable in daytimetables:
-            if(daytimetable.timetable[start:end+1] == '0' * (end - start)):
-                Rooms += Room.objects.get(id = daytimetable.room_id)
+        Rooms = Room.objects.filter(type = type)
+        for room in Rooms:
+            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+            if('1' in daytimetable.timetable[start:end+1]):
+                Rooms = Rooms.exclude(id = room.id)
         serializer = RoomSerializer(Rooms, many=True)
         return Response(serializer.data)
     
@@ -118,7 +171,7 @@ class RoomControl(APIView):
             if(command == 'on'):
                 for room in rooms:
                     try:
-                        daytimetable = DayTimeTable.objects.get(room_id = room.id, date = date)
+                        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                         daytimetable.timetable[start:end+1] = '0' * (end - start)
                         daytimetable.save()
                     except DayTimeTable.DoesNotExist:
@@ -128,7 +181,7 @@ class RoomControl(APIView):
             elif(command == 'off'):
                 for room in rooms:
                     try:
-                        daytimetable = DayTimeTable.objects.get(room_id = room.id, date = date)
+                        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                         daytimetable.delete()
                     except DayTimeTable.DoesNotExist:
                         pass
