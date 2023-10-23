@@ -37,39 +37,53 @@ class Login(APIView):
         token = TokenObtainPairSerializer.get_token(user)
         return Response({'refresh_token': str(token), 'token': str(token.access_token)})
     
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    
-class RoomViewSet(viewsets.ModelViewSet):
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
-    
-class ReservationViewSet(viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
-
-class FeedbackViewSet(viewsets.ModelViewSet):
-    queryset = Feedback.objects.all()
-    serializer_class = FeedbackSerializer
-    
-class RoomList(APIView):
+"""request
+{
+    "date" : "2023-10-12",
+    "type" : "smash"
+}
+"""
+class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
         data = request.data
+        date = data.get('date')
         type = data.get('type')
-        rooms = Room.objects.filter(type = type)
-        serializer = RoomSerializer(rooms, many=True)
-        return Response(serializer.data)
+        Rooms = Room.objects.filter(type = type)
+        room_num = Rooms.count()
+        table = [room_num]*26
+        for room in Rooms:
+            try:
+                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+                for i in range(26):
+                    if(daytimetable.timetable[i] == '1'):
+                        table[i] -= 1
+            except DayTimeTable.DoesNotExist:
+                newdaytimetable = DayTimeTable.objects.create(room_id = room, date = date)
+                newdaytimetable.save()
+        return JsonResponse(table, safe=False)
 
-class RoomDetailView(APIView):
+"""request
+{ 
+    "date" : "2023-10-12",
+    "type" : "smash",
+    "start" : 10,
+    "end" : 15
+}
+"""
+
+class SearchDayTimeTable(APIView): 
     def get(self, request, format=None, *args, **kwargs):
-        room_id = kwargs.get('room_id')
-        room = Room.objects.get(id = room_id)
-        serializer = RoomSerializer(room)
+        data = request.data
+        date = data.get('date')
+        type = data.get('type')
+        start = data.get('start')
+        end = data.get('end')
+        Rooms = Room.objects.filter(type = type)
+        for room in Rooms:
+            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+            if('1' in daytimetable.timetable[start:end+1]):
+                Rooms = Rooms.exclude(id = room.id)
+        serializer = RoomSerializer(Rooms, many=True)
         return Response(serializer.data)
 
 """request
@@ -109,55 +123,115 @@ class RoomReservation(APIView):
 
 """request
 {
-    "date" : "2023-10-12",
-    "type" : "smash"
+    "user_id" : 1
 }
 """
 
-
-class SearchDayTable(APIView):
+class ReservationList(APIView):
     def get(self, request, format=None, *args, **kwargs):
         data = request.data
-        date = data.get('date')
-        type = data.get('type')
-        Rooms = Room.objects.filter(type = type)
-        room_num = Rooms.count()
-        table = [room_num]*26
-        for room in Rooms:
-            try:
-                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-                for i in range(26):
-                    if(daytimetable.timetable[i] == '1'):
-                        table[i] -= 1
-            except DayTimeTable.DoesNotExist:
-                newdaytimetable = DayTimeTable.objects.create(room_id = room, date = date)
-                newdaytimetable.save()
-        return JsonResponse(table, safe=False)
-
-"""request
-{ 
-    "date" : "2023-10-12",
-    "type" : "smash",
-    "start" : 10,
-    "end" : 15
-}
-"""
-
-class SearchDayTimeTable(APIView):  #request : { date : '20211012', start_time : 10, start_min : 30, usehour : 2 }
-    def get(self, request, format=None, *args, **kwargs):
-        data = request.data
-        date = data.get('date')
-        type = data.get('type')
-        start = data.get('start')
-        end = data.get('end')
-        Rooms = Room.objects.filter(type = type)
-        for room in Rooms:
-            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-            if('1' in daytimetable.timetable[start:end+1]):
-                Rooms = Rooms.exclude(id = room.id)
-        serializer = RoomSerializer(Rooms, many=True)
+        user_id = data.get('user_id')
+        user = User.objects.get(id = user_id)
+        reservations = Reservation.objects.filter(user_id = user)
+        serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)
     
+"""request
+{
+    "reservation_id" : 1
+}
+"""
+class DeleteReservation(APIView):
+    def post(self, request, format=None, *args, **kwargs):
+        data = request.data
+        reservation_id = data.get('reservation_id')
+        reservation = Reservation.objects.get(id = reservation_id)
+        room = reservation.room_id
+        date = reservation.date
+        start = reservation.start
+        end = reservation.end
+        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+        reserve = '0' * (end - start)
+        daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+        daytimetable.save()
+        reservation.delete()
+        serializer = DayTimeTableSerializer(daytimetable)
+        return Response(serializer.data)
+    
+"""request
+{
+    "reservation_id" : 1
+}
+"""
+class ExtendReservation(APIView):
+    def post(self, request, format=None, *args, **kwargs):
+        data = request.data
+        reservation_id = data.get('reservation_id')
+        reservation = Reservation.objects.get(id = reservation_id)
+        extension = reservation.extension
+        print(extension)
+        if(extension > 0):
+            room = reservation.room_id
+            date = reservation.date
+            end = reservation.end
+            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+            if('1' not in daytimetable.timetable[end+1:end+2]):
+                reserve = '1' * 1
+                daytimetable.timetable = daytimetable.timetable[:end+1] + reserve + daytimetable.timetable[end + 2:]
+                reservation.end += 1
+                reservation.extension -= 1
+                daytimetable.save()
+                reservation.save()
+                serializer = ReservationSerializer(reservation)
+                return Response(serializer.data)
+            else:   # 이미 예약이 있는 경우
+                serializer = DayTimeTableSerializer(daytimetable)
+                return Response(serializer.data)
+        else:   # 연장 횟수를 다 쓴 경우
+            return Response(extension)
+    def get(self, request, format=None, *args, **kwargs):
+        data = request.data
+        reservation_id = data.get('reservation_id')
+        reservation = Reservation.objects.get(id = reservation_id)
+        extension = reservation.extension
+        return Response(extension)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    
+class RoomViewSet(viewsets.ModelViewSet):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    
+class ReservationViewSet(viewsets.ModelViewSet):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+
+class FeedbackViewSet(viewsets.ModelViewSet):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
+    
+class RoomList(APIView):
+    def get(self, request, format=None, *args, **kwargs):
+        data = request.data
+        type = data.get('type')
+        rooms = Room.objects.filter(type = type)
+        serializer = RoomSerializer(rooms, many=True)
+        return Response(serializer.data)
+
+class RoomDetailView(APIView):
+    def get(self, request, format=None, *args, **kwargs):
+        room_id = kwargs.get('room_id')
+        room = Room.objects.get(id = room_id)
+        serializer = RoomSerializer(room)
+        return Response(serializer.data)
+ 
 class RoomControl(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
