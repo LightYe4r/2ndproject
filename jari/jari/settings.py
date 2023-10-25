@@ -78,7 +78,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_WHITELIST = [
     'https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app',
     'http://localhost:8000',
