@@ -78,10 +78,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
-CORS_ORIGIN_ALLOW_ALL = True
+#CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_WHITELIST = [
     'https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app',
     'http://localhost:8000',
+    'http://localhost:5173'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -89,6 +90,7 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app",
     "http://localhost:8000",
+    "http://localhost:5173"
 ]
 
 ROOT_URLCONF = 'jari.urls'
