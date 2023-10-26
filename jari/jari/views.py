@@ -16,6 +16,7 @@ from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from json.decoder import JSONDecodeError
 from rest_framework import status
+import json
 
 """request
 {
@@ -47,7 +48,7 @@ class Login(APIView):
     
 class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
-        print(request.data,request.headers)
+        print(json.loads(request.body.decode('utf-8')),request.headers)
         data = request.data
         date = data.get('date')
         type = data.get('type')
