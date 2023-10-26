@@ -44,17 +44,10 @@ class Login(APIView):
     "type" : "smash"
 }
 """
-
-class RefreshTokenGet(APIView):
-    def post(self, request, format=None, *args, **kwargs):
-        data = request.data
-        refresh_token = data.get('refresh_token')
-        refresh = RefreshToken(refresh_token)
-        token = TokenObtainPairSerializer.get_token(refresh.get('user'))
-        return Response({'refresh_token': str(token), 'token': str(token.access_token)})
     
 class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
+        print(request.data,request.headers)
         data = request.data
         date = data.get('date')
         type = data.get('type')
@@ -205,6 +198,25 @@ class ExtendReservation(APIView):
         reservation = Reservation.objects.get(id = reservation_id)
         extension = reservation.extension
         return Response(extension)
+    
+    """request
+    {
+    
+    }"""
+class RefreshTokenView(APIView):
+    def post(self, request):
+        refresh = request.data.get('refresh_token')
+
+        if not refresh:
+            return Response({'error': 'Refresh token이 제공되지 않았습니다.'}, status=status.HTTP_BAD_REQUEST)
+
+        try:
+            refresh_token = RefreshToken(refresh)
+            access_token = refresh_token.access_token
+            return Response({'access_token': str(access_token)}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': '유효하지 않은 refresh token입니다.'}, status=status.HTTP_BAD_REQUEST)
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
