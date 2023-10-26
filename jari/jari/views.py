@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
@@ -43,6 +44,15 @@ class Login(APIView):
     "type" : "smash"
 }
 """
+
+class RefreshTokenGet(APIView):
+    def post(self, request, format=None, *args, **kwargs):
+        data = request.data
+        refresh_token = data.get('refresh_token')
+        refresh = RefreshToken(refresh_token)
+        token = TokenObtainPairSerializer.get_token(refresh.get('user'))
+        return Response({'refresh_token': str(token), 'token': str(token.access_token)})
+    
 class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
         data = request.data
