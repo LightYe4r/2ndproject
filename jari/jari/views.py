@@ -46,6 +46,7 @@ class Login(APIView):
 """
 class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
+        print(request.data,request.headers)
         data = request.data
         date = data.get('date')
         type = data.get('type')
