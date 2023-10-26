@@ -1,10 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-<<<<<<< HEAD
 from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation,RefreshTokenView
-=======
-from .views import *
->>>>>>> 1e502008e9a0dbdee9303b9d0719c08623df5cc9
 from rest_framework import routers
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
