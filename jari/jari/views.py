@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
@@ -195,6 +196,25 @@ class ExtendReservation(APIView):
         reservation = Reservation.objects.get(id = reservation_id)
         extension = reservation.extension
         return Response(extension)
+    
+    """request
+    {
+    
+    }"""
+class RefreshTokenView(APIView):
+    def post(self, request):
+        refresh = request.data.get('refresh_token')
+
+        if not refresh:
+            return Response({'error': 'Refresh token이 제공되지 않았습니다.'}, status=status.HTTP_BAD_REQUEST)
+
+        try:
+            refresh_token = RefreshToken(refresh)
+            access_token = refresh_token.access_token
+            return Response({'access_token': str(access_token)}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': '유효하지 않은 refresh token입니다.'}, status=status.HTTP_BAD_REQUEST)
+
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation
+from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation,RefreshTokenView
 from rest_framework import routers
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
@@ -26,4 +26,5 @@ urlpatterns = [
     path('deletereservation/',DeleteReservation.as_view()),
     path('extendreservation/',ExtendReservation.as_view()),
     path('control/',RoomControl.as_view()),
+    path('refresh-token/', RefreshTokenView.as_view()),
 ]
