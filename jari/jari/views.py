@@ -44,6 +44,15 @@ class Login(APIView):
     "type" : "smash"
 }
 """
+
+class RefreshTokenGet(APIView):
+    def post(self, request, format=None, *args, **kwargs):
+        data = request.data
+        refresh_token = data.get('refresh_token')
+        refresh = RefreshToken(refresh_token)
+        token = TokenObtainPairSerializer.get_token(refresh.get('user'))
+        return Response({'refresh_token': str(token), 'token': str(token.access_token)})
+    
 class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
         print(request.data,request.headers)
