@@ -24,7 +24,7 @@ urlpatterns = [
     path('searchdaytable/<str:date>/<str:type>/',SearchDayTable.as_view()),
     path('reservationlist/<int:user_id>/',ReservationList.as_view()),
     path('deletereservation/',DeleteReservation.as_view()),
-    path('extendreservation/',ExtendReservation.as_view()),
+    path('extendreservation/<int:reservation_id>',ExtendReservation.as_view()),
     path('control/',RoomControl.as_view()),
     path('refresh-token/', RefreshTokenView.as_view()),
 ]
