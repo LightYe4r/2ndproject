@@ -192,6 +192,7 @@ class ExtendReservation(APIView):
     
     }"""
 class RefreshTokenView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         refresh = request.data.get('refresh_token')
 
