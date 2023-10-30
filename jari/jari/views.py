@@ -47,10 +47,7 @@ class Login(APIView):
 """
     
 class SearchDayTable(APIView):
-    def get(self, request, format=None, *args, **kwargs):
-        data = request.data
-        date = data.get('date')
-        type = data.get('type')
+    def get(self, request, format=None, date = None, type = None):
         Rooms = Room.objects.filter(type = type)
         room_num = Rooms.count()
         table = [room_num]*26
@@ -75,12 +72,7 @@ class SearchDayTable(APIView):
 """
 
 class SearchDayTimeTable(APIView): 
-    def get(self, request, format=None, *args, **kwargs):
-        data = request.data
-        date = data.get('date')
-        type = data.get('type')
-        start = data.get('start')
-        end = data.get('end')
+    def get(self, request, format=None, date = None, type = None, start = None, end = None):
         Rooms = Room.objects.filter(type = type)
         for room in Rooms:
             daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
@@ -131,9 +123,7 @@ class RoomReservation(APIView):
 """
 
 class ReservationList(APIView):
-    def get(self, request, format=None, *args, **kwargs):
-        data = request.data
-        user_id = data.get('user_id')
+    def get(self, request, format=None, user_id = None):
         user = User.objects.get(id = user_id)
         reservations = Reservation.objects.filter(user_id = user)
         serializer = ReservationSerializer(reservations, many=True)
@@ -192,9 +182,7 @@ class ExtendReservation(APIView):
                 return Response(serializer.data)
         else:   # 연장 횟수를 다 쓴 경우
             return Response(extension)
-    def get(self, request, format=None, *args, **kwargs):
-        data = request.data
-        reservation_id = data.get('reservation_id')
+    def get(self, request, format=None, reservation_id = None):
         reservation = Reservation.objects.get(id = reservation_id)
         extension = reservation.extension
         return Response(extension)
@@ -240,15 +228,13 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     serializer_class = FeedbackSerializer
     
 class RoomList(APIView):
-    def get(self, request, format=None, *args, **kwargs):
-        data = request.data
-        type = data.get('type')
+    def get(self, request, format=None, type = None):
         rooms = Room.objects.filter(type = type)
         serializer = RoomSerializer(rooms, many=True)
         return Response(serializer.data)
 
 class RoomDetailView(APIView):
-    def get(self, request, format=None, *args, **kwargs):
+    def get(self, request, format=None, room_id = None):
         room_id = kwargs.get('room_id')
         room = Room.objects.get(id = room_id)
         serializer = RoomSerializer(room)
