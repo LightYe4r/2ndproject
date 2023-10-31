@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation,RefreshTokenView
+from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation,RefreshTokenView, SearchRoomTimeTable
 from rest_framework import routers
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
@@ -20,11 +20,12 @@ urlpatterns = [
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('login/', Login.as_view()),
     path('roomreserve/', RoomReservation.as_view()),
-    path('searchtimetable/',SearchDayTimeTable.as_view()),
-    path('searchdaytable/',SearchDayTable.as_view()),
-    path('reservationlist/',ReservationList.as_view()),
+    path('searchtimetable/<str:date>/<str:type>/<int:start>/<int:end>/',SearchDayTimeTable.as_view()),
+    path('searchdaytable/<str:date>/<str:type>/',SearchDayTable.as_view()),
+    path('searchroomtable/<int:room_id>/<str:date>/',SearchRoomTimeTable.as_view()),
+    path('reservationlist/<int:user_id>/',ReservationList.as_view()),
     path('deletereservation/',DeleteReservation.as_view()),
-    path('extendreservation/',ExtendReservation.as_view()),
+    path('extendreservation/<int:reservation_id>',ExtendReservation.as_view()),
     path('control/',RoomControl.as_view()),
     path('refresh-token/', RefreshTokenView.as_view()),
 ]
