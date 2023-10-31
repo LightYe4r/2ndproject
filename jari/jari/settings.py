@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,8 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3gs+nh97@$6u59ah0_dcwh^!eua1w6&x&8@&cl4_h)0k!cn8^q'
+
 # SECRET_KEY= os.environ['SECRET_KEY']
+SECRET_KEY = 'django-insecure-3gs+nh97@$6u59ah0_dcwh^!eua1w6&x&8@&cl4_h)0k!cn8^q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -67,6 +68,14 @@ REST_FRAMEWORK = {
     )
 }
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_REFRESH_LIFETIME_LIFETIME': True,
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
+}
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -78,10 +87,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_WHITELIST = [
     'https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app',
     'http://localhost:8000',
+    'http://localhost:5173'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -89,6 +99,7 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://port-0-toy-k19y2kljwq5eju.sel4.cloudtype.app",
     "http://localhost:8000",
+    "http://localhost:5173"
 ]
 
 ROOT_URLCONF = 'jari.urls'

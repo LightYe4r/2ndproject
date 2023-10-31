@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
@@ -15,6 +16,7 @@ from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from json.decoder import JSONDecodeError
 from rest_framework import status
+import json
 
 """request
 {
@@ -43,8 +45,10 @@ class Login(APIView):
     "type" : "smash"
 }
 """
+    
 class SearchDayTable(APIView):
     def get(self, request, format=None, *args, **kwargs):
+        print(json.loads(request.body.decode('utf-8')),request.headers)
         data = request.data
         date = data.get('date')
         type = data.get('type')
@@ -195,6 +199,25 @@ class ExtendReservation(APIView):
         reservation = Reservation.objects.get(id = reservation_id)
         extension = reservation.extension
         return Response(extension)
+    
+    """request
+    {
+    
+    }"""
+class RefreshTokenView(APIView):
+    def post(self, request):
+        refresh = request.data.get('refresh_token')
+
+        if not refresh:
+            return Response({'error': 'Refresh token이 제공되지 않았습니다.'}, status=status.HTTP_BAD_REQUEST)
+
+        try:
+            refresh_token = RefreshToken(refresh)
+            access_token = refresh_token.access_token
+            return Response({'access_token': str(access_token)}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': '유효하지 않은 refresh token입니다.'}, status=status.HTTP_BAD_REQUEST)
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
