@@ -109,12 +109,12 @@ class RoomReservation(APIView):
         data = request.data
         room_id = data.get('room_id')
         date = data.get('date')
-        user_id = data.get('user_id')
+        kakao_id = data.get('kakao_id')
         start = data.get('start')
         end = data.get('end')
         people_num = data.get('people_num')
         room = Room.objects.get(id = room_id)
-        user = User.objects.get(id = user_id)
+        user = User.objects.get(kakao_id = kakao_id)
         daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
         if('1' not in daytimetable.timetable[start:end+1]):
             print(daytimetable.timetable[start:end+1])
