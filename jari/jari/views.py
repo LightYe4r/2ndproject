@@ -80,6 +80,12 @@ class SearchDayTimeTable(APIView):
                 Rooms = Rooms.exclude(id = room.id)
         serializer = RoomSerializer(Rooms, many=True)
         return Response(serializer.data)
+
+class SearchDayTimeTables(APIView):
+    def get(self, request, format=None, date = None):
+        DayTimeTables = DayTimeTable.objects.filter(date = date)
+        serializer = DayTimeTableSerializer(DayTimeTables, many=True)
+        return Response(serializer.data)
     
 """request
 {
