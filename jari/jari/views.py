@@ -274,7 +274,9 @@ class RoomControl(APIView):
                 for room in rooms:
                     try:
                         daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-                        daytimetable.timetable[start:end+1] = '0' * (end - start)
+                        # daytimetable.timetable[start:end+1] = '0' * (end - start)
+                        reserve = '0' * (end - start)
+                        daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                         daytimetable.save()
                     except DayTimeTable.DoesNotExist:
                         pass
@@ -301,7 +303,9 @@ class RoomControl(APIView):
             if(command == 'on'):
                 try:
                     daytimetable = DayTimeTable.objects.get(room_id = room_id, date = date)
-                    daytimetable.timetable[start:end+1] = '0' * (end - start)
+                    # daytimetable.timetable[start:end+1] = '0' * (end - start)
+                    reserve = '0' * (end - start)
+                    daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]    
                     daytimetable.save()
                 except DayTimeTable.DoesNotExist:
                     pass
