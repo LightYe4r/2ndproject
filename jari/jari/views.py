@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
-from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer,DayTimeTableSerializer
+from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer,DayTimeTableSerializer, MyPageSerializer
 from django.http import JsonResponse
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
@@ -121,19 +121,24 @@ class RoomReservation(APIView):
         people_num = data.get('people_num')
         room = Room.objects.get(id = room_id)
         user = User.objects.get(kakao_id = kakao_id)
-        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-        if('1' not in daytimetable.timetable[start:end+1]):
-            print(daytimetable.timetable[start:end+1])
-            reserve = '1' * (end - start)
-            daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
-            reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
-            reservation.save()
+        try:
+            reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
             serializer = ReservationSerializer(reservation)
-            daytimetable.save()
-        else:
-            print("no")
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data)
+            return Response(serializer.data)
+        except Reservation.DoesNotExist:
+            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+            if('1' not in daytimetable.timetable[start:end+1]):
+                print(daytimetable.timetable[start:end+1])
+                reserve = '1' * (end - start)
+                daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+                reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
+                reservation.save()
+                serializer = ReservationSerializer(reservation)
+                daytimetable.save()
+            else:
+                serializer = DayTimeTableSerializer(daytimetable)
+                return Response(serializer.data)
+            return Response(serializer.data)
 
 """request
 {
@@ -225,7 +230,17 @@ class RefreshTokenView(APIView):
         except Exception as e:
             return Response({'error': '유효하지 않은 refresh token입니다.'}, status=status.HTTP_BAD_REQUEST)
 
-
+class SearchMyReservation(APIView):
+    def post(self, request, format=None):
+        data = request.data 
+        kakao_id = data.get('kakao_id')
+        date = data.get('date')
+        user = User.objects.get(kakao_id = kakao_id)
+        reservations = Reservation.objects.filter(user_id = user, date = date)
+        room = reservations[0].room_id
+        daytimetable = DayTimeTable.objects.filter(date = date, room_id = room)
+        serializer = MyPageSerializer({"reservations": reservations, "daytimetable": daytimetable})
+        return Response(serializer.data)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
