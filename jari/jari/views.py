@@ -89,22 +89,22 @@ class SearchDayTimeTables(APIView):
     
 """request
 {
-    "room_id" : 1,
+    "room_name" : "smash0",
     "date" : "2023-10-12"
 }
 """
 class SearchRoomTimeTable(APIView):
-    def get(self, request, format=None, room_id = None, date = None):
-        room = Room.objects.get(id = room_id)
+    def get(self, request, format=None, room_name = None, date = None):
+        room = Room.objects.get(name = room_name)
         daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
         serializer = DayTimeTableSerializer(daytimetable)
         return Response(serializer.data)
     
 """request
 {
-    "room_id" : 1,
+    "room_name" : "smash0",
     "date" : "2023-10-12",
-    "user_id" : 1,
+    "kakao_id" : 1,
     "start" : 10,
     "end" : 15,
     "people_num" : 2
@@ -113,13 +113,13 @@ class SearchRoomTimeTable(APIView):
 class RoomReservation(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
-        room_id = data.get('room_id')
+        room_name = data.get('room_name')
         date = data.get('date')
         kakao_id = data.get('kakao_id')
         start = data.get('start')
         end = data.get('end')
         people_num = data.get('people_num')
-        room = Room.objects.get(id = room_id)
+        room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
         try:
             reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
@@ -142,29 +142,33 @@ class RoomReservation(APIView):
 
 """request
 {
-    "user_id" : 1
+    "kakao_id" : 1
 }
 """
 
 class ReservationList(APIView):
-    def get(self, request, format=None, user_id = None):
-        user = User.objects.get(id = user_id)
+    def get(self, request, format=None, kakao_id = None):
+        user = User.objects.get(kako_id = kakao_id)
         reservations = Reservation.objects.filter(user_id = user)
         serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)
     
 """request
 {
-    "reservation_id" : 1
+    "room_name" : "smash0",
+    "date" : "2023-10-12",
+    "kakao_id" : "1234"
 }
 """
 class DeleteReservation(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
-        reservation_id = data.get('reservation_id')
-        reservation = Reservation.objects.get(id = reservation_id)
-        room = reservation.room_id
-        date = reservation.date
+        room_name = data.get('room_name')
+        date = data.get('date')
+        kakao_id = data.get('kakao_id')
+        room = Room.objects.get(name = room_name)
+        user = User.objects.get(kakao_id = kakao_id)
+        reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
         start = reservation.start
         end = reservation.end
         daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
@@ -177,19 +181,22 @@ class DeleteReservation(APIView):
     
 """request
 {
-    "reservation_id" : 1
+    "room_name" : "smash0",
+    "date" : "2023-10-12",
+    "kakao_id" : "1234"
 }
 """
 class ExtendReservation(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
-        reservation_id = data.get('reservation_id')
-        reservation = Reservation.objects.get(id = reservation_id)
+        room_name = data.get('room_name')
+        date = data.get('date')
+        kakao_id = data.get('kakao_id')
+        room = Room.objects.get(name = room_name)
+        user = User.objects.get(kakao_id = kakao_id)
+        reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
         extension = reservation.extension
-        print(extension)
         if(extension > 0):
-            room = reservation.room_id
-            date = reservation.date
             end = reservation.end
             daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
             if('1' not in daytimetable.timetable[end+1:end+2]):
@@ -229,7 +236,11 @@ class RefreshTokenView(APIView):
             return Response({'access_token': str(access_token)}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': '유효하지 않은 refresh token입니다.'}, status=status.HTTP_BAD_REQUEST)
-
+"""request
+{
+    "kakao_id" : "1234",
+    "date" : "2023-11-07"
+}"""
 class SearchMyReservation(APIView):
     def post(self, request, format=None):
         data = request.data 
@@ -240,6 +251,26 @@ class SearchMyReservation(APIView):
         room = reservations[0].room_id
         daytimetable = DayTimeTable.objects.filter(date = date, room_id = room)
         serializer = MyPageSerializer({"reservations": reservations, "daytimetable": daytimetable})
+        return Response(serializer.data)
+    
+"""request
+{
+    "room_name" : "smash0",
+    "kakao_id" : "1234",
+    "content" : "test"
+}"""
+    
+class MakeFeedback(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        room_name = data.get('room_name')
+        kakao_id = data.get('kakao_id')
+        content = data.get('content')
+        room = Room.objects.get(name = room_name)
+        user = User.objects.get(kakao_id = kakao_id)
+        feedback = Feedback.objects.create(room_id = room, user_id = user, content = content)
+        feedback.save()
+        serializer = FeedbackSerializer(feedback)
         return Response(serializer.data)
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -270,7 +301,6 @@ class RoomList(APIView):
 
 class RoomDetailView(APIView):
     def get(self, request, format=None, room_id = None):
-        room_id = kwargs.get('room_id')
         room = Room.objects.get(id = room_id)
         serializer = RoomSerializer(room)
         return Response(serializer.data)
