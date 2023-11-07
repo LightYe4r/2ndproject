@@ -34,7 +34,7 @@ class User(AbstractUser):
 
 class Room(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,unique=True)
     start_hour = models.IntegerField()
     end_hour = models.IntegerField()
     type = models.CharField(max_length=100)
@@ -63,15 +63,14 @@ class Reservation(models.Model):
     extension = models.IntegerField(default=2)
     
 class Feedback(models.Model):
-    id = models.AutoField(primary_key=True)
-    reservation_id = models.ForeignKey(Reservation, on_delete=models.CASCADE)
+    feedback_id = models.AutoField(primary_key=True)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     create_at = models.DateTimeField(auto_now_add=True)
     
 class Post(models.Model):
-    id = models.AutoField(primary_key=True)
+    post_id = models.AutoField(primary_key=True)
     student_id = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     content = models.TextField()
