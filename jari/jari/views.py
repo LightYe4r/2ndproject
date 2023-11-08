@@ -122,7 +122,7 @@ class RoomReservation(APIView):
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
         try:
-            reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
+            reservation = Reservation.objects.get(date = date, user_id = user)
             serializer = ReservationSerializer(reservation)
             return Response(serializer.data)
         except Reservation.DoesNotExist:
