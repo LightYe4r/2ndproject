@@ -128,8 +128,7 @@ class RoomReservation(APIView):
         except Reservation.DoesNotExist:
             daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
             if('1' not in daytimetable.timetable[start:end+1]):
-                print(daytimetable.timetable[start:end+1])
-                reserve = '1' * (end - start)
+                reserve = '1' * (end - start +1 )
                 daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                 reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
                 reservation.save()
