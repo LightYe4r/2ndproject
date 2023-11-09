@@ -64,10 +64,17 @@ class Reservation(models.Model):
     
 class Feedback(models.Model):
     feedback_id = models.AutoField(primary_key=True)
+    case = models.CharField(max_length=100)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
+    content = models.TextField(max_length=500)
     create_at = models.DateTimeField(auto_now_add=True)
+    status_choice = (
+        ('ready', '확인 전'),
+        ('progress', '처리중'),
+        ('done', '처리 완료'),
+    )
+    status = models.CharField(max_length=10, choices=status_choice, default='ready')
     
 class Post(models.Model):
     post_id = models.AutoField(primary_key=True)
