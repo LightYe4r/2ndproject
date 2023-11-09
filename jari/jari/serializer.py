@@ -12,6 +12,7 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class ReservationSerializer(serializers.ModelSerializer):
+    room_name = serializers.CharField(source='room_id.name', read_only=True)
     class Meta:
         model = Reservation
         fields = '__all__'
