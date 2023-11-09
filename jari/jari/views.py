@@ -10,8 +10,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .models import *
 from .serializer import *
-# from .models import User, Room, Reservation, Feedback, Post, DayTimeTable
-# from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer,DayTimeTableSerializer, MyPageSerializer
 from django.http import JsonResponse
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
@@ -136,10 +134,11 @@ class RoomReservation(APIView):
                 reservation.save()
                 serializer = ReservationSerializer(reservation)
                 daytimetable.save()
+                return Response(serializer.data)
             else:
                 serializer = DayTimeTableSerializer(daytimetable)
                 return Response(serializer.data)
-            return Response(serializer.data)
+            
 
 """request
 {

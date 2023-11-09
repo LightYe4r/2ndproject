@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.urls import path, include
-# from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation,RefreshTokenView, SearchRoomTimeTable, SearchDayTimeTables,SearchMyReservation,MakeFeedback
 from .views import *
 from rest_framework import routers
 from dj_rest_auth.registration.views import SocialLoginView
