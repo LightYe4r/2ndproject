@@ -66,6 +66,7 @@ class Feedback(models.Model):
     feedback_id = models.AutoField(primary_key=True)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    type = models.CharField(max_length=100)
     content = models.TextField()
     create_at = models.DateTimeField(auto_now_add=True)
     

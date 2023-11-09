@@ -134,10 +134,11 @@ class RoomReservation(APIView):
                 reservation.save()
                 serializer = ReservationSerializer(reservation)
                 daytimetable.save()
+                return Response(serializer.data)
             else:
                 serializer = DayTimeTableSerializer(daytimetable)
                 return Response(serializer.data)
-            return Response(serializer.data)
+            
 
 """request
 {
@@ -265,9 +266,10 @@ class MakeFeedback(APIView):
         room_name = data.get('room_name')
         kakao_id = data.get('kakao_id')
         content = data.get('content')
+        type = data.get('type')
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
-        feedback = Feedback.objects.create(room_id = room, user_id = user, content = content)
+        feedback = Feedback.objects.create(room_id = room, user_id = user, content = content, type = type)
         feedback.save()
         serializer = FeedbackSerializer(feedback)
         return Response(serializer.data)
