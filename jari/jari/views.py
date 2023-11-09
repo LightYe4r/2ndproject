@@ -8,7 +8,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
+"""from .models import User, Room, Reservation, Feedback, Post, DayTimeTable"""
 from .models import *
+# from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer,DayTimeTableSerializer, MyPageSerializer
 from .serializer import *
 from django.http import JsonResponse
 from dj_rest_auth.registration.views import SocialLoginView
@@ -134,11 +136,10 @@ class RoomReservation(APIView):
                 reservation.save()
                 serializer = ReservationSerializer(reservation)
                 daytimetable.save()
-                return Response(serializer.data)
             else:
                 serializer = DayTimeTableSerializer(daytimetable)
                 return Response(serializer.data)
-            
+            return Response(serializer.data)
 
 """request
 {
@@ -263,64 +264,15 @@ class SearchMyReservation(APIView):
 class MakeFeedback(APIView):
     def post(self, request, format=None):
         data = request.data
-        mode = data.get('mode')
-        if(mode == 'create'): # 피드백 생성, room_name, kakao_id, content, case 필요
-            room_name = data.get('room_name')
-            kakao_id = data.get('kakao_id')
-            content = data.get('content')
-            case = data.get('case')
-            room = Room.objects.get(name = room_name)
-            user = User.objects.get(kakao_id = kakao_id)
-            feedback = Feedback.objects.create(room_id = room, user_id = user, content = content, case = case)
-            feedback.save()
-            serializer = FeedbackSerializer(feedback)
-            return Response(serializer.data)
-        
-        elif(mode == 'read'): # 피드백 조회, room_name or kakao_id or status or feedback_id or case 필요
-            room_name = data.get('room_name')
-            kakao_id = data.get('kakao_id')
-            status = data.get('status')
-            feedback_id = data.get('feedback_id')
-            case = data.get('case')
-            if(room_name):
-                room = Room.objects.get(name = room_name)
-                feedbacks = Feedback.objects.filter(room_id = room)
-            elif(kakao_id):
-                user = User.objects.get(kakao_id = kakao_id)
-                feedbacks = Feedback.objects.filter(user_id = user)
-            elif(status):
-                feedbacks = Feedback.objects.filter(status = status)
-            elif(feedback_id):
-                feedbacks = Feedback.objects.filter(feedback_id = feedback_id)
-            elif(case):
-                feedbacks = Feedback.objects.filter(case = case)
-            else:
-                feedbacks = Feedback.objects.all()
-            serializer = FeedbackSerializer(feedbacks, many=True)
-            return Response(serializer.data)
-        
-        elif(mode == 'update'): # 피드백 수정, feedback_id, content, case 필요
-            feedback_id = data.get('feedback_id')
-            content = data.get('content')
-            case = data.get('case')
-            status = data.get('status')
-            feedback = Feedback.objects.get(feedback_id = feedback_id)
-            feedback.content = content
-            feedback.case = case
-            feedback.status = status
-            feedback.save()
-            serializer = FeedbackSerializer(feedback)
-            return Response(serializer.data)
-        
-        elif(mode == 'delete'): # 피드백 삭제, feedback_id 필요
-            feedback_id = data.get('feedback_id')
-            feedback = Feedback.objects.get(feedback_id = feedback_id)
-            feedback.delete()
-            serializer = FeedbackSerializer(feedback)
-            return Response(serializer.data)
-        
-        else:
-            return Response("잘못된 요청입니다.")
+        room_name = data.get('room_name')
+        kakao_id = data.get('kakao_id')
+        content = data.get('content')
+        room = Room.objects.get(name = room_name)
+        user = User.objects.get(kakao_id = kakao_id)
+        feedback = Feedback.objects.create(room_id = room, user_id = user, content = content)
+        feedback.save()
+        serializer = FeedbackSerializer(feedback)
+        return Response(serializer.data)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -419,4 +371,4 @@ class RoomControl(APIView):
                 room.status = 'off'
                 room.save()
             serializer = RoomSerializer(room)
-            return Response(serializer.data)
+            return Response(serializer.data) 
