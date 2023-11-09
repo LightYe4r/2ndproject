@@ -303,8 +303,11 @@ class MakeFeedback(APIView):
             feedback_id = data.get('feedback_id')
             content = data.get('content')
             case = data.get('case')
+            status = data.get('status')
             feedback = Feedback.objects.get(feedback_id = feedback_id)
             feedback.content = content
+            feedback.case = case
+            feedback.status = status
             feedback.save()
             serializer = FeedbackSerializer(feedback)
             return Response(serializer.data)
