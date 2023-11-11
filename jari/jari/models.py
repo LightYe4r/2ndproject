@@ -63,7 +63,7 @@ class Reservation(models.Model):
     extension = models.IntegerField(default=2)
     
 class Feedback(models.Model):
-    feedback_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     case = models.CharField(max_length=100)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -8,9 +8,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
-"""from .models import User, Room, Reservation, Feedback, Post, DayTimeTable"""
 from .models import *
-# from .serializer import UserSerializer, RoomSerializer, ReservationSerializer, FeedbackSerializer, PostSerializer,DayTimeTableSerializer, MyPageSerializer
 from .serializer import *
 from django.http import JsonResponse
 from dj_rest_auth.registration.views import SocialLoginView
@@ -261,19 +259,80 @@ class SearchMyReservation(APIView):
     "content" : "test"
 }"""
     
-class MakeFeedback(APIView):
+class CreateFeedback(APIView):
     def post(self, request, format=None):
         data = request.data
         room_name = data.get('room_name')
         kakao_id = data.get('kakao_id')
+        case = data.get('case')
         content = data.get('content')
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
-        feedback = Feedback.objects.create(room_id = room, user_id = user, content = content)
+        feedback = Feedback.objects.create(room_id = room, user_id = user, case = case, content = content)
         feedback.save()
         serializer = FeedbackSerializer(feedback)
         return Response(serializer.data)
 
+class ReadFeedback(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        feedback_id = data.get('feedback_id')
+        room_name = data.get('room_name')
+        kakao_id = data.get('kakao_id')
+        case = data.get('case')
+        status = data.get('status')
+        if(feedback_id):
+            feedback = Feedback.objects.get(id = feedback_id)
+            serializer = FeedbackSerializer(feedback)
+            
+        elif(kakao_id):
+            user = User.objects.get(kakao_id = kakao_id)
+            feedbacks = Feedback.objects.filter(user_id = user)
+            serializer = FeedbackSerializer(feedbacks, many=True)
+            
+        elif(case):
+            feedbacks = Feedback.objects.filter(case = case)
+            serializer = FeedbackSerializer(feedbacks, many=True)
+            
+        elif(status):
+            feedbacks = Feedback.objects.filter(status = status)
+            serializer = FeedbackSerializer(feedbacks, many=True)
+            
+        elif(room_name):
+            room = Room.objects.get(name = room_name)
+            feedbacks = Feedback.objects.filter(room_id = room)
+            serializer = FeedbackSerializer(feedbacks, many=True)
+            
+        else:
+            feedbacks = Feedback.objects.all()
+            serializer = FeedbackSerializer(feedbacks, many=True)
+            
+        return Response(serializer.data)
+
+class UpdateFeedback(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        feedback_id = data.get('feedback_id')
+        kakao_id = data.get('kakao_id')
+        case = data.get('case')
+        status = data.get('status')
+        content = data.get('content')
+        feedback = Feedback.objects.get(id = feedback_id)
+        feedback.status = status
+        feedback.content = content
+        feedback.case = case
+        feedback.save()
+        serializer = FeedbackSerializer(feedback)
+        return Response(serializer.data)
+    
+class DeleteFeedback(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        feedback_id = data.get('feedback_id')
+        feedback = Feedback.objects.get(id = feedback_id)
+        feedback.delete()
+        return Response("Delete Success")
+    
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer

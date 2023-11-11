@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.urls import path, include
-#from .views import UserViewSet, PostViewSet, RoomViewSet, ReservationViewSet, FeedbackViewSet, RoomList, RoomDetailView, RoomReservation, Login, SearchDayTimeTable, RoomControl,SearchDayTable, ReservationList,DeleteReservation,ExtendReservation,RefreshTokenView, SearchRoomTimeTable, SearchDayTimeTables,SearchMyReservation,MakeFeedback
 from .views import *
 from rest_framework import routers
 from dj_rest_auth.registration.views import SocialLoginView
@@ -17,8 +16,8 @@ routers.register('feedbacks', FeedbackViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(routers.urls)),
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
-    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    # path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    # path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('login/', Login.as_view()),
     path('roomreserve/', RoomReservation.as_view()),
     path('searchtimetable/<str:date>/<str:type>/<int:start>/<int:end>/',SearchDayTimeTable.as_view()),
@@ -29,7 +28,10 @@ urlpatterns = [
     path('reservationlist/<int:user_id>/',ReservationList.as_view()),
     path('deletereservation/',DeleteReservation.as_view()),
     path('extendreservation/<int:reservation_id>',ExtendReservation.as_view()),
-    path('makefeedback/',MakeFeedback.as_view()),
     path('control/',RoomControl.as_view()),
     path('refresh-token/', RefreshTokenView.as_view()),
+    path('createfeedback/', CreateFeedback.as_view()),
+    path('readfeedback/', ReadFeedback.as_view()),
+    path('updatefeedback/', UpdateFeedback.as_view()),
+    path('deletefeedback/', DeleteFeedback.as_view()),
 ]
