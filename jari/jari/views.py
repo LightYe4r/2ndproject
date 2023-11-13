@@ -126,23 +126,25 @@ class RoomReservation(APIView):
         people_num = data.get('people_num')
         current_date = data.get('current_date')
         current_index = data.get('current_index')
-        room = Room.objects.get(name = room_name)
-        user = User.objects.get(kakao_id = kakao_id)
-        try:
-            reservation = Reservation.objects.get(date = date, user_id = user)
-            serializer = ReservationSerializer(reservation)
-            reservedate = datetime.strptime(str(reservation.date), date_format)
+        room = Room.objects.get(name=room_name)
+        user = User.objects.get(kakao_id=kakao_id)
+
+        reservations = Reservation.objects.filter(user_id=user).order_by('date').first()
+
+        if reservations:
+            reserved_date = datetime.strptime(str(reservations.date), date_format)
             current_date = datetime.strptime(str(current_date), date_format)
-            if(reservedate > current_date):
+
+            if reserved_date > current_date:
                 return JsonResponse({"error": "앞선 예약이 있습니다."})
-            elif(reservedate == current_date and reservation.end >= current_index):
+            elif reserved_date == current_date and reservations.end >= current_index:
                 return JsonResponse({"error": "이용 중이거나 예약된 내역이 있습니다."})
-            elif(reservedate == current_date and reservation.end < current_index):
-                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-                if('1' not in daytimetable.timetable[start:end+1]):
-                    reserve = '1' * (end - start +1 )
+            elif reserved_date == current_date and reservations.end < current_index:
+                daytimetable = DayTimeTable.objects.get(room_id=room, date=date)
+                if '1' not in daytimetable.timetable[start:end + 1]:
+                    reserve = '1' * (end - start + 1)
                     daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
-                    reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
+                    reservation = Reservation.objects.create(room_id=room, date=date, user_id=user, start=start, end=end, people_num=people_num)
                     reservation.save()
                     serializer = ReservationSerializer(reservation)
                     daytimetable.save()
@@ -151,11 +153,11 @@ class RoomReservation(APIView):
                     serializer = DayTimeTableSerializer(daytimetable)
                     return JsonResponse({"error": "다른 예약이 있습니다."})
             else:
-                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-                if('1' not in daytimetable.timetable[start:end+1]):
-                    reserve = '1' * (end - start +1 )
+                daytimetable = DayTimeTable.objects.get(room_id=room, date=date)
+                if '1' not in daytimetable.timetable[start:end + 1]:
+                    reserve = '1' * (end - start + 1)
                     daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
-                    reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
+                    reservation = Reservation.objects.create(room_id=room, date=date, user_id=user, start=start, end=end, people_num=people_num)
                     reservation.save()
                     serializer = ReservationSerializer(reservation)
                     daytimetable.save()
@@ -163,12 +165,12 @@ class RoomReservation(APIView):
                 else:
                     serializer = DayTimeTableSerializer(daytimetable)
                     return JsonResponse({"error": "다른 예약이 있습니다."})
-        except Reservation.DoesNotExist:
-            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-            if('1' not in daytimetable.timetable[start:end+1]):
-                reserve = '1' * (end - start +1 )
+        else:
+            daytimetable = DayTimeTable.objects.get(room_id=room, date=date)
+            if '1' not in daytimetable.timetable[start:end + 1]:
+                reserve = '1' * (end - start + 1)
                 daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
-                reservation = Reservation.objects.create(room_id = room, date = date, user_id = user, start = start, end = end, people_num = people_num)
+                reservation = Reservation.objects.create(room_id=room, date=date, user_id=user, start=start, end=end, people_num=people_num)
                 reservation.save()
                 serializer = ReservationSerializer(reservation)
                 daytimetable.save()
@@ -176,6 +178,7 @@ class RoomReservation(APIView):
             else:
                 serializer = DayTimeTableSerializer(daytimetable)
                 return JsonResponse({"error": "다른 예약이 있습니다."})
+
             
 """request
 {
@@ -275,38 +278,46 @@ class RefreshTokenView(APIView):
             return Response({'error': '유효하지 않은 refresh token입니다.'}, status=status.HTTP_BAD_REQUEST)
 """request
 {
-    "kakao_id" : "1234",
+    "kakao_id" : "jihoon",
     "current_date" : "2023-10-12",
     "current_index" : 10
 }"""
+from django.http import JsonResponse
+from rest_framework.response import Response
+
 class SearchMyReservation(APIView):
     def post(self, request, format=None):
-        data = request.data 
+        data = request.data
         kakao_id = data.get('kakao_id')
         current_date = data.get('current_date')
         current_index = data.get('current_index')
-        user = User.objects.get(kakao_id = kakao_id)
-        try:
-            reservations = Reservation.objects.get(user_id = user)
-            reservedate = datetime.strptime(str(reservations.date), date_format)
+        user = User.objects.get(kakao_id=kakao_id)
+
+        reservations = Reservation.objects.filter(user_id=user).order_by('date').first()
+
+        if reservations:
+            reserved_date = datetime.strptime(str(reservations.date), date_format)
             current_date = datetime.strptime(str(current_date), date_format)
-            if(reservedate <= current_date):
-                if(reservedate == current_date and reservations.end < current_index):
+
+            if reserved_date <= current_date:
+                if reserved_date == current_date and reservations.end < current_index:
                     return JsonResponse({"error": "이용 중이거나 예약된 내역이 없습니다."})
-                elif(reservedate == current_date and reservations.end >= current_index):
+                elif reserved_date == current_date and reservations.end >= current_index:
                     room = reservations.room_id
-                    daytimetable = DayTimeTable.objects.filter(date = reservations.date, room_id = room)
+                    daytimetable = DayTimeTable.objects.filter(date=reservations.date, room_id=room)
                     serializer = MyPageSerializer({"reservations": reservations, "daytimetable": daytimetable})
                     return Response(serializer.data)
                 else:
-                    return JsonResponse({"error": "이용 중이거나 예약된 내역이 없습니다."})
+                    return JsonResponse({"error": "예약이 없습니다."})
+                    
             else:
                 room = reservations.room_id
-                daytimetable = DayTimeTable.objects.filter(date = reservations.date, room_id = room)
+                daytimetable = DayTimeTable.objects.filter(date=reservations.date, room_id=room)
                 serializer = MyPageSerializer({"reservations": reservations, "daytimetable": daytimetable})
                 return Response(serializer.data)
-        except Reservation.DoesNotExist:
-            JsonResponse({"error": "예약이 없습니다."})
+        else:
+            return JsonResponse({"error": "예약이 없습니다."})
+
     
 """request
 {
