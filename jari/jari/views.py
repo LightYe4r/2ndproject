@@ -282,8 +282,6 @@ class RefreshTokenView(APIView):
     "current_date" : "2023-10-12",
     "current_index" : 10
 }"""
-from django.http import JsonResponse
-from rest_framework.response import Response
 
 class SearchMyReservation(APIView):
     def post(self, request, format=None):
@@ -444,27 +442,29 @@ class RoomControl(APIView):
             rooms = Room.objects.all()
             if(command == 'on'):
                 for room in rooms:
-                    try:
-                        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-                        # daytimetable.timetable[start:end+1] = '0' * (end - start)
-                        reserve = '0' * (end - start)
-                        daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
-                        daytimetable.save()
-                    except DayTimeTable.DoesNotExist:
-                        pass
+                    daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                    if daytimetable:
+                        if('1' not in daytimetable.timetable[start:end+1]):
+                            reserve = '0' * (end - start +1)
+                            daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+                            daytimetable.save()
+                    else:
+                        serializer = DayTimeTableSerializer(daytimetable)
+                        return Response(serializer.data)
                     room.status = 'on'
                     room.save()
             elif(command == 'off'):
                 for room in rooms:
-                    try:
-                        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-                        daytimetable.delete()
-                    except DayTimeTable.DoesNotExist:
-                        pass
-                    try:
-                        reservation = Reservation.objects.get(room_id = room.id, date = date)
-                        reservation.delete()
-                    except Reservation.DoesNotExist:
+                    daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                    if daytimetable:
+                        if('1' not in daytimetable.timetable[start:end+1]):
+                            reserve = '1' * (end - start +1)
+                            daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+                            daytimetable.save()
+                        else:
+                            serializer = DayTimeTableSerializer(daytimetable)
+                            return Response(serializer.data)
+                    else:
                         pass
                     room.status = 'off'
                     room.save()
@@ -473,26 +473,28 @@ class RoomControl(APIView):
         else:
             room = Room.objects.get(id = room_id)
             if(command == 'on'):
-                try:
-                    daytimetable = DayTimeTable.objects.get(room_id = room_id, date = date)
-                    # daytimetable.timetable[start:end+1] = '0' * (end - start)
-                    reserve = '0' * (end - start)
-                    daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]    
-                    daytimetable.save()
-                except DayTimeTable.DoesNotExist:
-                    pass
+                daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                if daytimetable:
+                    if('1' not in daytimetable.timetable[start:end+1]):
+                        reserve = '0' * (end - start +1)
+                        daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+                        daytimetable.save()
+                else:
+                    serializer = DayTimeTableSerializer(daytimetable)
+                    return Response(serializer.data)
                 room.status = 'on'
                 room.save()
             elif(command == 'off'):
-                try:
-                    daytimetable = DayTimeTable.objects.get(room_id = room_id, date = date)
-                    daytimetable.delete()
-                except DayTimeTable.DoesNotExist:
-                    pass
-                try:
-                    reservation = Reservation.objects.get(room_id = room_id, date = date)
-                    reservation.delete()
-                except Reservation.DoesNotExist:
+                daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                if daytimetable:
+                    if('1' not in daytimetable.timetable[start:end+1]):
+                        reserve = '1' * (end - start +1)
+                        daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+                        daytimetable.save()
+                    else:
+                        serializer = DayTimeTableSerializer(daytimetable)
+                        return Response(serializer.data)
+                else:
                     pass
                 room.status = 'off'
                 room.save()
