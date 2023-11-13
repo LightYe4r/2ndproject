@@ -106,11 +106,13 @@ class SearchRoomTimeTable(APIView):
 """request
 {
     "room_name" : "smash0",
-    "date" : "2023-10-12",
-    "kakao_id" : 1,
-    "start" : 10,
-    "end" : 15,
+    "date" : "2023-11-13",
+    "kakao_id" : "jihoon",
+    "start" : 0,
+    "end" : 1,
     "people_num" : 2
+    "current_date" : "2023-11-12",
+    "current_index" : 10
 }
 """
 class RoomReservation(APIView):
@@ -129,8 +131,8 @@ class RoomReservation(APIView):
         try:
             reservation = Reservation.objects.get(date = date, user_id = user)
             serializer = ReservationSerializer(reservation)
-            reservedate = datetime.strptime(reservation.date, date_format)
-            current_date = datetime.strptime(current_date, date_format)
+            reservedate = datetime.strptime(str(reservation.date), date_format)
+            current_date = datetime.strptime(str(current_date), date_format)
             if(reservedate > current_date):
                 return JsonResponse({"error": "앞선 예약이 있습니다."})
             elif(reservedate == current_date and reservation.end >= current_index):
@@ -286,8 +288,8 @@ class SearchMyReservation(APIView):
         user = User.objects.get(kakao_id = kakao_id)
         try:
             reservations = Reservation.objects.get(user_id = user)
-            reservedate = datetime.strptime(reservations.date, date_format)
-            current_date = datetime.strptime(current_date, date_format)
+            reservedate = datetime.strptime(str(reservations.date), date_format)
+            current_date = datetime.strptime(str(current_date), date_format)
             if(reservedate <= current_date):
                 if(reservedate == current_date and reservations.end < current_index):
                     return JsonResponse({"error": "이용 중이거나 예약된 내역이 없습니다."})
