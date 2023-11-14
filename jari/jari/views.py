@@ -128,7 +128,6 @@ class RoomReservation(APIView):
         user = User.objects.get(kakao_id=kakao_id)
 
         reservations = Reservation.objects.filter(user_id=user).order_by('id').last()
-        print(reservations.date)
 
         if reservations:
             date_format = '%Y-%m-%d'
@@ -188,7 +187,9 @@ class RoomReservation(APIView):
 """
 
 class ReservationList(APIView):
-    def get(self, request, format=None, kakao_id = None):
+    def post(self, request, format=None):
+        data = request.data
+        kakao_id = data.get('kakao_id')
         user = User.objects.get(kakao_id = kakao_id)
         reservations = Reservation.objects.filter(user_id = user)
         serializer = ReservationSerializer(reservations, many=True)

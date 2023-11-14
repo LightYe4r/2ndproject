@@ -25,7 +25,7 @@ urlpatterns = [
     path('searchdaytimetables/<str:date>/',SearchDayTimeTables.as_view()),
     path('searchroomtable/<int:room_id>/<str:date>/',SearchRoomTimeTable.as_view()),
     path('searchmyreservation/',SearchMyReservation.as_view()),
-    path('reservationlist/<int:user_id>/',ReservationList.as_view()),
+    path('reservationlist/',ReservationList.as_view()),
     path('deletereservation/',DeleteReservation.as_view()),
     path('extendreservation/<int:reservation_id>',ExtendReservation.as_view()),
     path('control/',RoomControl.as_view()),
