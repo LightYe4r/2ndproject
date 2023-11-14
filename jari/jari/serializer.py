@@ -33,5 +33,5 @@ class DayTimeTableSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MyPageSerializer(serializers.Serializer):
-    reservations = ReservationSerializer(many=True)
+    reservations = ReservationSerializer(many=False)
     daytimetable = DayTimeTableSerializer(many=True)
