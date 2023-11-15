@@ -18,6 +18,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class FeedbackSerializer(serializers.ModelSerializer):
+    room_name = serializers.CharField(source='room_id.name', read_only=True)
     class Meta:
         model = Feedback
         fields = '__all__'
