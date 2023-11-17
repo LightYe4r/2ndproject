@@ -46,7 +46,7 @@ class Login(APIView):
     "type" : "smash"
 }
 """
-    
+# 날짜와 타입을 받아서 해당하는 날짜와 타입의 가능한 방의 개수를 반환하고 처음 조회된다면 생성
 class SearchDayTable(APIView):
     def get(self, request, format=None, date = None, type = None):
         Rooms = Room.objects.filter(type = type)
@@ -56,7 +56,7 @@ class SearchDayTable(APIView):
             try:
                 daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                 for i in range(26):
-                    if(daytimetable.timetable[i] == '1'):
+                    if(daytimetable.timetable[i] != '0'):
                         table[i] -= 1
             except DayTimeTable.DoesNotExist:
                 newdaytimetable = DayTimeTable.objects.create(room_id = room, date = date)
@@ -72,16 +72,18 @@ class SearchDayTable(APIView):
 }
 """
 
+#날짜,방,그리고 시간을 받아서 가능한 방들의 정보를 반환
 class SearchDayTimeTable(APIView): 
     def get(self, request, format=None, date = None, type = None, start = None, end = None):
         Rooms = Room.objects.filter(type = type)
         for room in Rooms:
             daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-            if('1' in daytimetable.timetable[start:end+1]):
+            if('1' in daytimetable.timetable[start:end+1] or '2' in daytimetable.timetable[start:end+1]):
                 Rooms = Rooms.exclude(id = room.id)
         serializer = RoomSerializer(Rooms, many=True)
         return Response(serializer.data)
 
+# 날짜에 해당하는 모든 방의 시간표를 반환
 class SearchDayTimeTables(APIView):
     def get(self, request, format=None, date = None):
         DayTimeTables = DayTimeTable.objects.filter(date = date)
@@ -94,6 +96,7 @@ class SearchDayTimeTables(APIView):
     "date" : "2023-10-12"
 }
 """
+# 방과 날짜를 받아서 해당하는 방의 날짜의 시간표를 반환
 class SearchRoomTimeTable(APIView):
     def get(self, request, format=None, room_name = None, date = None):
         room = Room.objects.get(name = room_name)
@@ -141,7 +144,7 @@ class RoomReservation(APIView):
                 return JsonResponse({"error": "이용 중이거나 예약된 내역이 있습니다."})
             elif diff.days == 0 and reservations.end < current_index:
                 daytimetable = DayTimeTable.objects.get(room_id=room, date=date)
-                if '1' not in daytimetable.timetable[start:end + 1]:
+                if '1' not in daytimetable.timetable[start:end + 1] and '2' not in daytimetable.timetable[start:end + 1]:
                     reserve = '1' * (end - start + 1)
                     daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                     reservation = Reservation.objects.create(room_id=room, date=date, user_id=user, start=start, end=end, people_num=people_num)
@@ -154,7 +157,7 @@ class RoomReservation(APIView):
                     return JsonResponse({"error": "다른 예약이 있습니다."})
             else:
                 daytimetable = DayTimeTable.objects.get(room_id=room, date=date)
-                if '1' not in daytimetable.timetable[start:end + 1]:
+                if '1' not in daytimetable.timetable[start:end + 1] and '2' not in daytimetable.timetable[start:end + 1]:
                     reserve = '1' * (end - start + 1)
                     daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                     reservation = Reservation.objects.create(room_id=room, date=date, user_id=user, start=start, end=end, people_num=people_num)
@@ -167,7 +170,7 @@ class RoomReservation(APIView):
                     return JsonResponse({"error": "다른 예약이 있습니다."})
         else:
             daytimetable = DayTimeTable.objects.get(room_id=room, date=date)
-            if '1' not in daytimetable.timetable[start:end + 1]:
+            if '1' not in daytimetable.timetable[start:end + 1] and '2' not in daytimetable.timetable[start:end + 1]:
                 reserve = '1' * (end - start + 1)
                 daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                 reservation = Reservation.objects.create(room_id=room, date=date, user_id=user, start=start, end=end, people_num=people_num)
@@ -214,7 +217,7 @@ class DeleteReservation(APIView):
         start = reservation.start
         end = reservation.end
         daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-        reserve = '0' * (end - start)
+        reserve = '0' * (end - start +1 )
         daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
         daytimetable.save()
         reservation.delete()
@@ -241,7 +244,7 @@ class ExtendReservation(APIView):
         if(extension > 0):
             end = reservation.end
             daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-            if('1' not in daytimetable.timetable[end+1:end+2]):
+            if('1' not in daytimetable.timetable[end+1:end+2] and '2' not in daytimetable.timetable[end+1:end+2]):
                 reserve = '1' * 1
                 daytimetable.timetable = daytimetable.timetable[:end+1] + reserve + daytimetable.timetable[end + 2:]
                 reservation.end += 1
@@ -457,14 +460,12 @@ class RoomControl(APIView):
                     else:
                         serializer = DayTimeTableSerializer(daytimetable)
                         return Response(serializer.data)
-                    room.status = 'on'
-                    room.save()
             elif(command == 'off'):
                 for room in rooms:
                     daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
                     if daytimetable:
                         if('1' not in daytimetable.timetable[start:end+1]):
-                            reserve = '1' * (end - start +1)
+                            reserve = '2' * (end - start +1)
                             daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                             daytimetable.save()
                         else:
@@ -472,8 +473,6 @@ class RoomControl(APIView):
                             return Response(serializer.data)
                     else:
                         pass
-                    room.status = 'off'
-                    room.save()
             serializer = RoomSerializer(rooms, many=True)
             return Response(serializer.data)
         else:
@@ -488,13 +487,11 @@ class RoomControl(APIView):
                 else:
                     serializer = DayTimeTableSerializer(daytimetable)
                     return Response(serializer.data)
-                room.status = 'on'
-                room.save()
             elif(command == 'off'):
                 daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
                 if daytimetable:
                     if('1' not in daytimetable.timetable[start:end+1]):
-                        reserve = '1' * (end - start +1)
+                        reserve = '2' * (end - start +1)
                         daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
                         daytimetable.save()
                     else:
@@ -502,7 +499,5 @@ class RoomControl(APIView):
                         return Response(serializer.data)
                 else:
                     pass
-                room.status = 'off'
-                room.save()
             serializer = RoomSerializer(room)
             return Response(serializer.data) 

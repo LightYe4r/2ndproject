@@ -29,7 +29,6 @@ class User(AbstractUser):
     username = models.CharField(max_length=100, unique=True)
     kakao_id = models.CharField(max_length=100, unique=True)
     REQUIRED_FIELDS = ['kakao_id']
-    # USERNAME_FIELD = 'kakao_id'
     objects = UserManager()
 
 class Room(models.Model):
@@ -39,11 +38,6 @@ class Room(models.Model):
     end_hour = models.IntegerField()
     type = models.CharField(max_length=100)
     people_num = models.IntegerField()
-    status_choice = (
-        ('on', '예약가능'),
-        ('off', '예약불가능'),
-    )
-    status = models.CharField(max_length=100, choices=status_choice, default='on')
     
 class DayTimeTable(models.Model):
     id = models.AutoField(primary_key=True)
