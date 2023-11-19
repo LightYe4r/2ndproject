@@ -237,7 +237,7 @@ class DeleteReservation(APIView):
 class ExtendReservation(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
-        room_name = data.get('room_name')
+        room_name = data.get('room_name') 
         date = data.get('date')
         kakao_id = data.get('kakao_id')
         room = Room.objects.get(name = room_name)
