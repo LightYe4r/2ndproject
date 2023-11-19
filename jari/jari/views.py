@@ -214,15 +214,18 @@ class DeleteReservation(APIView):
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
         reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
-        start = reservation.start
-        end = reservation.end
-        daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-        reserve = '0' * (end - start +1 )
-        daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
-        daytimetable.save()
-        reservation.delete()
-        serializer = DayTimeTableSerializer(daytimetable)
-        return Response(serializer.data)
+        if reservation:
+            start = reservation.start
+            end = reservation.end
+            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+            reserve = '0' * (end - start +1 )
+            daytimetable.timetable = daytimetable.timetable[:start] + reserve + daytimetable.timetable[end + 1:]
+            daytimetable.save()
+            reservation.delete()
+            serializer = DayTimeTableSerializer(daytimetable)
+            return Response(serializer.data)
+        else:
+            return JsonResponse({"error": "해당 예약이 없습니다."})
     
 """request
 {
