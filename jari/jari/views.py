@@ -213,7 +213,7 @@ class DeleteReservation(APIView):
         kakao_id = data.get('kakao_id')
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
-        reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
+        reservation = Reservation.objects.filter(room_id = room, date = date, user_id = user).order_by('id').last()
         if reservation:
             start = reservation.start
             end = reservation.end
@@ -242,7 +242,7 @@ class ExtendReservation(APIView):
         kakao_id = data.get('kakao_id')
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
-        reservation = Reservation.objects.get(room_id = room, date = date, user_id = user)
+        reservation = Reservation.objects.filter(room_id = room, date = date, user_id = user).order_by('id').last()
         extension = reservation.extension
         if(extension > 0):
             end = reservation.end
