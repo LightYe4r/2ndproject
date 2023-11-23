@@ -445,12 +445,12 @@ class RoomDetailView(APIView):
 class RoomControl(APIView):
     def post(self, request, format=None, *args, **kwargs):
         data = request.data
-        room_id = data.get('room_id')
+        room_name = data.get('room_name')
         date = data.get('date')
         start = data.get('start')
         end = data.get('end')
         command = data.get('command')
-        if(room_id == 'all'):
+        if(room_name == 'all'):
             rooms = Room.objects.all()
             if(command == 'on'):
                 for room in rooms:
@@ -479,7 +479,7 @@ class RoomControl(APIView):
             serializer = RoomSerializer(rooms, many=True)
             return Response(serializer.data)
         else:
-            room = Room.objects.get(id = room_id)
+            room = Room.objects.get(name = room_name)
             if(command == 'on'):
                 daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
                 if daytimetable:
