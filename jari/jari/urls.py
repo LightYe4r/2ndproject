@@ -27,7 +27,7 @@ urlpatterns = [
     path('searchmyreservation/',SearchMyReservation.as_view()),
     path('reservationlist/',ReservationList.as_view()),
     path('deletereservation/',DeleteReservation.as_view()),
-    path('extendreservation/<int:reservation_id>',ExtendReservation.as_view()),
+    path('extendreservation/',ExtendReservation.as_view()),
     path('control/',RoomControl.as_view()),
     path('refresh-token/', RefreshTokenView.as_view()),
     path('createfeedback/', CreateFeedback.as_view()),
