@@ -454,7 +454,7 @@ class RoomControl(APIView):
             rooms = Room.objects.all()
             if(command == 'on'):
                 for room in rooms:
-                    daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                    daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                     if daytimetable:
                         if('1' not in daytimetable.timetable[start:end+1]):
                             reserve = '0' * (end - start +1)
@@ -465,7 +465,7 @@ class RoomControl(APIView):
                         return Response(serializer.data)
             elif(command == 'off'):
                 for room in rooms:
-                    daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                    daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                     if daytimetable:
                         if('1' not in daytimetable.timetable[start:end+1]):
                             reserve = '2' * (end - start +1)
@@ -481,7 +481,7 @@ class RoomControl(APIView):
         else:
             room = Room.objects.get(name = room_name)
             if(command == 'on'):
-                daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                 if daytimetable:
                     if('1' not in daytimetable.timetable[start:end+1]):
                         reserve = '0' * (end - start +1)
@@ -491,7 +491,7 @@ class RoomControl(APIView):
                     serializer = DayTimeTableSerializer(daytimetable)
                     return Response(serializer.data)
             elif(command == 'off'):
-                daytimetable = DayTimeTable.objects.filter(room_id = room, date = date)
+                daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                 if daytimetable:
                     if('1' not in daytimetable.timetable[start:end+1]):
                         reserve = '2' * (end - start +1)
