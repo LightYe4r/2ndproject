@@ -240,27 +240,39 @@ class ExtendReservation(APIView):
         room_name = data.get('room_name') 
         date = data.get('date')
         kakao_id = data.get('kakao_id')
+        current_index = data.get('current_index')
+        current_date = data.get('current_date')
         room = Room.objects.get(name = room_name)
         user = User.objects.get(kakao_id = kakao_id)
         reservation = Reservation.objects.filter(room_id = room, date = date, user_id = user).order_by('id').last()
         extension = reservation.extension
-        if(extension > 0):
-            end = reservation.end
-            daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
-            if('1' not in daytimetable.timetable[end+1:end+2] and '2' not in daytimetable.timetable[end+1:end+2]):
-                reserve = '1' * 1
-                daytimetable.timetable = daytimetable.timetable[:end+1] + reserve + daytimetable.timetable[end + 2:]
-                reservation.end += 1
-                reservation.extension -= 1
-                daytimetable.save()
-                reservation.save()
-                serializer = ReservationSerializer(reservation)
-                return Response(serializer.data)
-            else:   # 이미 예약이 있는 경우
-                serializer = DayTimeTableSerializer(daytimetable)
-                return Response(serializer.data)
-        else:   # 연장 횟수를 다 쓴 경우
-            return Response(extension)
+        date_format = '%Y-%m-%d'
+        reserved_date = datetime.strptime(str(reservation.date), date_format)
+        current_date = datetime.strptime(str(current_date), date_format)
+        diff = reserved_date - current_date
+        if(diff.days == 0):
+            if(end == current_index):
+                if(extension > 0 ):
+                    end = reservation.end
+                    daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
+                    if('1' not in daytimetable.timetable[end+1:end+2] and '2' not in daytimetable.timetable[end+1:end+2]):
+                        reserve = '1' * 1
+                        daytimetable.timetable = daytimetable.timetable[:end+1] + reserve + daytimetable.timetable[end + 2:]
+                        reservation.end += 1
+                        reservation.extension -= 1
+                        daytimetable.save()
+                        reservation.save()
+                        serializer = ReservationSerializer(reservation)
+                        return Response(serializer.data)
+                    else:   # 이미 예약이 있는 경우
+                        serializer = DayTimeTableSerializer(daytimetable)
+                        return Response(serializer.data)
+                else:   # 연장 횟수를 다 쓴 경우
+                    return Response({"error": "연장 횟수를 다 썼습니다."})
+            else:
+                return Response({"error": "아직 연장할 수 없습니다."})
+        else:
+            return Response({"error": "예약 날짜가 아직 아닙니다"})
     def get(self, request, format=None, reservation_id = None):
         reservation = Reservation.objects.get(id = reservation_id)
         extension = reservation.extension
@@ -504,3 +516,13 @@ class RoomControl(APIView):
                     pass
             serializer = RoomSerializer(room)
             return Response(serializer.data) 
+        
+class RequestUserId(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        kakao_id = data.get('kakao_id')
+        try:
+            user = User.objects.get(kakao_id = kakao_id)
+            return Response(user.id)
+        except User.DoesNotExist:
+            return Response("user does not exist")
