@@ -22,7 +22,7 @@ import json
 """request
 {
     "username" : "test",
-    "kakao_id" : "1234"
+    "kakao_id" : "jihoon"
 }
 """
 
@@ -516,13 +516,17 @@ class RoomControl(APIView):
                     pass
             serializer = RoomSerializer(room)
             return Response(serializer.data) 
-        
+
 class RequestUserId(APIView):
-    def post(self, request, format=None):
-        data = request.data
-        kakao_id = data.get('kakao_id')
+    def get(self, request, format=None):
         try:
-            user = User.objects.get(kakao_id = kakao_id)
-            return Response(user.id)
-        except User.DoesNotExist:
-            return Response("user does not exist")
+            # Check if the user is authenticated
+            if request.user.is_authenticated:
+                user = request.user
+                serializer = UserSerializer(user)
+                return Response(serializer.data)
+            else:
+                 return Response({"error": "로그인이 되어있지 않습니다."})
+
+        except Exception as e:
+            return Response({"error": "로그인이 되어있지 않습니다."})

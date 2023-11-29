@@ -34,5 +34,5 @@ urlpatterns = [
     path('readfeedback/', ReadFeedback.as_view()),
     path('updatefeedback/', UpdateFeedback.as_view()),
     path('deletefeedback/', DeleteFeedback.as_view()),
-    path('requestuserID/', RequestUserId.as_view()),
+    path('requestuserid/', RequestUserId.as_view()),
 ]
