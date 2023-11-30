@@ -250,10 +250,10 @@ class ExtendReservation(APIView):
         reserved_date = datetime.strptime(str(reservation.date), date_format)
         current_date = datetime.strptime(str(current_date), date_format)
         diff = reserved_date - current_date
+        end = reservation.end
         if(diff.days == 0):
             if(end == current_index):
                 if(extension > 0 ):
-                    end = reservation.end
                     daytimetable = DayTimeTable.objects.get(room_id = room, date = date)
                     if('1' not in daytimetable.timetable[end+1:end+2] and '2' not in daytimetable.timetable[end+1:end+2]):
                         reserve = '1' * 1
